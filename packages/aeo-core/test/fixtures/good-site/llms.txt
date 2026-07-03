@@ -1,0 +1,30 @@
+# ExampleDocs
+
+> ExampleDocs is a REST API for managing users, teams, and projects. It provides CRUD operations with JSON responses and token-based authentication.
+
+## Getting Started
+
+- [Quickstart Guide](https://docs.example.com/getting-started): Step-by-step setup including installation, authentication, and your first API call (~500 tokens)
+- [Authentication](https://docs.example.com/auth): How to obtain and refresh API tokens (~300 tokens)
+
+## API Reference
+
+- [Users API](https://docs.example.com/api/users): Create, read, update, and delete user accounts (~800 tokens)
+- [Teams API](https://docs.example.com/api/teams): Manage team membership and permissions (~600 tokens)
+- [Projects API](https://docs.example.com/api/projects): Project lifecycle management (~700 tokens)
+
+## Concepts
+
+- [Rate Limiting](https://docs.example.com/concepts/rate-limiting): Understand request quotas and backoff strategies (~250 tokens)
+- [Error Handling](https://docs.example.com/concepts/errors): Standard error codes and troubleshooting (~400 tokens)
+- [Pagination](https://docs.example.com/concepts/pagination): Cursor-based pagination for list endpoints (~200 tokens)
+
+## SDKs
+
+- [Python SDK](https://docs.example.com/sdks/python): Official Python client library (~350 tokens)
+- [Node.js SDK](https://docs.example.com/sdks/node): Official Node.js client library (~350 tokens)
+
+## Optional
+
+- [Changelog](https://docs.example.com/changelog): Version history and migration notes
+- [Community](https://docs.example.com/community): Forums and support channels

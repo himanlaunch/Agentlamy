@@ -1,0 +1,22 @@
+{
+  "name": "agentic-seo-workspace",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Hosted Agentic Engine Optimization checker workspace",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @aeo/web",
+    "build": "npm run build --workspace @aeo/core && npm run build --workspace @aeo/web",
+    "test": "npm run test --workspace @aeo/core && npm run test --workspace @aeo/web",
+    "lint": "npm run lint --workspace @aeo/core && npm run lint --workspace @aeo/web",
+    "typecheck": "npm run typecheck --workspace @aeo/web",
+    "db:generate": "npm run db:generate --workspace @aeo/web",
+    "db:migrate": "npm run db:migrate --workspace @aeo/web"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

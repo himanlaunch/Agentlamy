@@ -1,0 +1,539 @@
+import { readFile, access, readdir } from 'node:fs/promises';
+import { join, extname, relative, basename } from 'node:path';
+import { constants } from 'node:fs';
+import { URL } from 'node:url';
+import * as cheerio from 'cheerio';
+
+/**
+ * Check if a file exists at the given path.
+ */
+export async function fileExists(filePath) {
+  try {
+    await access(filePath, constants.R_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Read a file's contents as UTF-8 text. Returns null if not found.
+ */
+export async function readFileSafe(filePath) {
+  try {
+    return await readFile(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Recursively walk a directory and return all file paths matching given extensions.
+ */
+export async function walkDir(dir, extensions = null, ignore = []) {
+  const results = [];
+  const defaultIgnore = ['node_modules', '.git', '.next', '__pycache__', '.cache'];
+  const allIgnore = [...defaultIgnore, ...ignore];
+
+  async function walk(currentDir) {
+    let entries;
+    try {
+      entries = await readdir(currentDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    for (const entry of entries) {
+      if (allIgnore.includes(entry.name)) continue;
+
+      const fullPath = join(currentDir, entry.name);
+
+      if (entry.isDirectory()) {
+        await walk(fullPath);
+      } else if (entry.isFile()) {
+        if (!extensions || extensions.includes(extname(entry.name).toLowerCase())) {
+          results.push(fullPath);
+        }
+      }
+    }
+  }
+
+  await walk(dir);
+  return results;
+}
+
+/**
+ * Get all HTML files in a directory.
+ */
+export async function getHtmlFiles(dir) {
+  return walkDir(dir, ['.html', '.htm']);
+}
+
+/**
+ * Get all Markdown files in a directory.
+ */
+export async function getMarkdownFiles(dir) {
+  return walkDir(dir, ['.md', '.mdx']);
+}
+
+/**
+ * Strip HTML tags and extract text content.
+ */
+export function stripHtml(html) {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+    .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+    .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Normalize a URL string to a consistent absolute form without hash fragments.
+ */
+export function normalizeUrl(input) {
+  const url = new URL(input);
+  url.hash = '';
+  if (url.pathname === '') {
+    url.pathname = '/';
+  }
+  return url.href.replace(/\/$/, url.pathname === '/' ? '/' : '');
+}
+
+/**
+ * Determine whether a URL belongs to the same origin as the base URL.
+ */
+export function isSameOrigin(candidate, baseUrl) {
+  try {
+    const a = new URL(candidate);
+    const b = new URL(baseUrl);
+    return a.origin === b.origin;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Determine whether a URL likely points at documentation content.
+ */
+export function looksLikeDocumentationUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.toLowerCase();
+    if (!path || path === '/') return true;
+    const hints = [
+      '/docs',
+      '/documentation',
+      '/guide',
+      '/guides',
+      '/api',
+      '/reference',
+      '/references',
+      '/tutorial',
+      '/quickstart',
+      '/getting-started',
+      '/developer',
+      '/developers',
+      '/cli',
+      '/sdk',
+      '/mcp',
+      '/openapi',
+    ];
+    return hints.some((hint) => path.includes(hint));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Extract internal links from an HTML page.
+ */
+export function extractInternalLinks(html, pageUrl, baseUrl) {
+  const $ = cheerio.load(html);
+  const links = new Set();
+
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href');
+    if (!href) return;
+    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('javascript:')) {
+      return;
+    }
+
+    try {
+      const resolved = normalizeUrl(new URL(href, pageUrl).href);
+      if (!isSameOrigin(resolved, baseUrl)) return;
+      if (/\.(png|jpg|jpeg|gif|svg|webp|pdf|zip|tar|gz|ico)$/i.test(resolved)) return;
+      links.add(resolved);
+    } catch {
+      // Ignore malformed links.
+    }
+  });
+
+  return [...links];
+}
+
+/**
+ * Build heading counts and skip information from HTML or Markdown.
+ */
+export function computeHeadingStats(text, contentType = 'text/html') {
+  const headingCounts = { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 };
+  const sequence = [];
+
+  if (contentType.includes('markdown') || contentType.endsWith('.md')) {
+    for (const match of text.matchAll(/^(#{1,6})\s+/gm)) {
+      const level = match[1].length;
+      headingCounts[`h${level}`] += 1;
+      sequence.push(level);
+    }
+  } else {
+    const $ = cheerio.load(text);
+    $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+      const level = Number(el.tagName[1]);
+      headingCounts[`h${level}`] += 1;
+      sequence.push(level);
+    });
+  }
+
+  let hasSkip = false;
+  for (let i = 1; i < sequence.length; i += 1) {
+    if (sequence[i] - sequence[i - 1] > 1) {
+      hasSkip = true;
+      break;
+    }
+  }
+
+  return {
+    counts: headingCounts,
+    sequence,
+    total: sequence.length,
+    hasSkip,
+  };
+}
+
+/**
+ * Analyze a fetched HTML or Markdown page for AEO signals.
+ */
+export function analyzePage({
+  url,
+  content,
+  contentType = 'text/html',
+  markdownUrl = null,
+  status = 200,
+  headers = {},
+}) {
+  const isMarkdown = contentType.includes('markdown') || /\.md($|\?)/i.test(url);
+  const headingStats = computeHeadingStats(content, isMarkdown ? 'text/markdown' : contentType);
+  const normalizedHeaders = Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value])
+  );
+
+  if (isMarkdown) {
+    const plainText = content
+      .replace(/^---[\s\S]*?---\n*/m, '')
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/[#>*_`~-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const intro = content
+      .replace(/^---[\s\S]*?---\n*/m, '')
+      .split(/\n{2,}/)
+      .find((chunk) => chunk.trim() && !chunk.trim().startsWith('#')) || '';
+
+    return {
+      url,
+      path: new URL(url).pathname,
+      status,
+      contentType,
+      text: plainText,
+      rawContent: content,
+      html: null,
+      title: content.match(/^#\s+(.+)$/m)?.[1]?.trim() || basename(new URL(url).pathname) || url,
+      markdownAvailable: Boolean(markdownUrl || /\.md($|\?)/i.test(url)),
+      markdownUrl: markdownUrl || url,
+      fetchMode: 'raw-http',
+      headingStats,
+      hasCodeExamples: /```[\s\S]*?```/m.test(content),
+      hasTables: /\|.+\|.+\|/m.test(content),
+      hasSemanticStructure: true,
+      introText: intro.trim(),
+      hasGoodIntro: intro.trim().length >= 80,
+      hasCopyForAi: /copy for ai|copy as markdown|copy for llm|copy for agent/i.test(content),
+      hasCopyCode: /copy/i.test(content) && /```/.test(content),
+      hasRawView: Boolean(markdownUrl),
+      meta: {
+        description: intro.trim().slice(0, 180),
+        tokenCountMeta: normalizedHeaders['x-token-count'] || null,
+        pageType: null,
+        canonical: null,
+        title: content.match(/^#\s+(.+)$/m)?.[1]?.trim() || null,
+      },
+      bodyTextLength: plainText.length,
+      tagRatio: 0,
+      jsRequired: false,
+      links: [],
+    };
+  }
+
+  const $ = cheerio.load(content);
+  const body = $('body');
+  const bodyText = body.text().replace(/\s+/g, ' ').trim();
+  const bodyHtml = body.html() || '';
+  const mainContent = $('main').length > 0 ? $('main') : $('article').length > 0 ? $('article') : body;
+  const firstParagraph = mainContent.find('p').first().text().replace(/\s+/g, ' ').trim();
+  const contentTypeMeta = $('meta[name="page-type"], meta[name="doc-type"], meta[name="ai:page-type"], meta[property="og:type"]').first();
+  const descriptionMeta = $('meta[name="description"]').attr('content')?.trim() || null;
+  const tokenMeta = $('meta[name="token-count"], meta[name="tokens"], meta[name="ai:token-count"], meta[property="ai:tokens"]').first().attr('content') || normalizedHeaders['x-token-count'] || null;
+  const canonical = $('link[rel="canonical"]').attr('href') || null;
+  const title = $('title').text().trim() || $('h1').first().text().trim() || url;
+  const links = extractInternalLinks(content, url, url);
+  const lower = bodyHtml.toLowerCase();
+
+  return {
+    url,
+    path: new URL(url).pathname,
+    status,
+    contentType,
+    text: bodyText,
+    rawContent: content,
+    html: content,
+    title,
+    markdownAvailable: Boolean(markdownUrl),
+    markdownUrl,
+    fetchMode: 'raw-http',
+    headingStats,
+    hasCodeExamples: $('pre code, pre, .highlight').length > 0,
+    hasTables: $('table').length > 0,
+    hasSemanticStructure: $('main, article, section').length > 0,
+    introText: firstParagraph,
+    hasGoodIntro: firstParagraph.length >= 80,
+    hasCopyForAi: /copy for ai|copy as markdown|copy for llm|copy for agent/i.test(lower),
+    hasCopyCode: $('button[data-copy], button.copy-button, button.copy-code, .copy-to-clipboard, [data-clipboard-target], button[aria-label*="copy" i], button[title*="copy" i]').length > 0,
+    hasRawView: $('a[href$=".md"], a[href*="format=md"], a[href*="raw=true"], a[href*="/raw/"]').length > 0 || /view source|view raw|edit on github/i.test(lower),
+    meta: {
+      description: descriptionMeta,
+      tokenCountMeta: tokenMeta,
+      pageType: contentTypeMeta.attr('content') || null,
+      canonical,
+      title,
+    },
+    bodyTextLength: bodyText.length,
+    tagRatio: bodyHtml.length / Math.max(bodyText.length, 1),
+    jsRequired: $('#root, #__next, #app, #__nuxt').length > 0 && bodyText.replace(/\s/g, '').length < 200,
+    links,
+  };
+}
+
+export function getScannedPages(context) {
+  return Array.isArray(context.pages) ? context.pages : [];
+}
+
+export function samplePages(context, limit = 20, predicate = () => true) {
+  return getScannedPages(context).filter(predicate).slice(0, limit);
+}
+
+export function getResourceFromContext(context, filename) {
+  if (!context?.resources) return null;
+  return context.resources[filename] || null;
+}
+
+/**
+ * Estimate character count to rough token count (1 token ≈ 4 chars for English).
+ */
+export function estimateTokensFromChars(text) {
+  return Math.ceil(text.length / 4);
+}
+
+/**
+ * Make a relative path from a base directory.
+ */
+export function relativePath(base, filePath) {
+  return relative(base, filePath);
+}
+
+/**
+ * Load config from .aeorc.json or package.json's "aeo" key.
+ */
+export async function loadConfig(dir) {
+  // Try .aeorc.json
+  const rcPath = join(dir, '.aeorc.json');
+  const rcContent = await readFileSafe(rcPath);
+  if (rcContent) {
+    try {
+      return JSON.parse(rcContent);
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }
+
+  // Try package.json "aeo" key
+  const pkgPath = join(dir, 'package.json');
+  const pkgContent = await readFileSafe(pkgPath);
+  if (pkgContent) {
+    try {
+      const pkg = JSON.parse(pkgContent);
+      if (pkg.aeo) return pkg.aeo;
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }
+
+  return {};
+}
+
+/**
+ * Known AI agent user-agent strings and crawlers.
+ */
+export const AI_AGENTS = {
+  crawlers: [
+    { name: 'ClaudeBot', pattern: 'ClaudeBot' },
+    { name: 'Claude-Web', pattern: 'Claude-Web' },
+    { name: 'GPTBot', pattern: 'GPTBot' },
+    { name: 'ChatGPT-User', pattern: 'ChatGPT-User' },
+    { name: 'Google-Extended', pattern: 'Google-Extended' },
+    { name: 'GoogleOther', pattern: 'GoogleOther' },
+    { name: 'PerplexityBot', pattern: 'PerplexityBot' },
+    { name: 'Amazonbot', pattern: 'Amazonbot' },
+    { name: 'cohere-ai', pattern: 'cohere-ai' },
+    { name: 'Bytespider', pattern: 'Bytespider' },
+  ],
+  codingAgents: [
+    { name: 'Claude Code', userAgent: 'axios/1.8.4' },
+    { name: 'Cursor', userAgent: 'got (sindresorhus/got)' },
+    { name: 'Cline', userAgent: 'curl/8.4.0' },
+    { name: 'Windsurf', userAgent: 'colly' },
+    { name: 'Aider', userAgent: 'Mozilla/5.0 (Playwright)' },
+    { name: 'VS Code', userAgent: 'Electron' },
+  ],
+};
+
+/**
+ * Parse a simple robots.txt into structured rules.
+ */
+export function parseRobotsTxt(content) {
+  const rules = [];
+  let currentAgent = null;
+
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const [directive, ...rest] = trimmed.split(':');
+    const value = rest.join(':').trim();
+
+    if (directive.toLowerCase() === 'user-agent') {
+      currentAgent = value;
+    } else if (directive.toLowerCase() === 'disallow' && currentAgent) {
+      rules.push({ agent: currentAgent, disallow: value });
+    } else if (directive.toLowerCase() === 'allow' && currentAgent) {
+      rules.push({ agent: currentAgent, allow: value });
+    }
+  }
+
+  return rules;
+}
+
+/**
+ * Check if a specific user-agent is blocked by robots.txt rules.
+ */
+export function isAgentBlocked(rules, agentName) {
+  // Find rules matching this agent or wildcard
+  const matching = rules.filter(
+    (r) => r.agent === '*' || r.agent.toLowerCase() === agentName.toLowerCase()
+  );
+
+  // If there are specific allow rules for root, agent is not fully blocked
+  const hasAllow = matching.some((r) => r.allow === '/');
+  const hasDisallow = matching.some((r) => r.disallow === '/');
+
+  if (hasDisallow && !hasAllow) return true;
+  return false;
+}
+
+/**
+ * Get the best directory to scan for content files from context.
+ * Returns context.dir if set, or null in URL-only mode.
+ * Does NOT fall back to projectDir since that may be the user's CWD
+ * and not the target site.
+ */
+export function getContentDir(context) {
+  return context.dir || null;
+}
+
+/**
+ * Fetch a text resource from a URL. Returns null on failure.
+ */
+export async function fetchUrl(baseUrl, path = '') {
+  try {
+    const url = path ? new URL(path, baseUrl).href : baseUrl;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'agentic-seo/1.0' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read a file locally or fetch it from a URL, trying both context.dir and context.url.
+ * Returns { content, source } or { content: null }.
+ */
+export async function resolveFile(context, filename) {
+  const cached = getResourceFromContext(context, filename);
+  if (cached?.content) {
+    return { content: cached.content, source: 'crawl' };
+  }
+  // Try local filesystem first
+  if (context.dir) {
+    const content = await readFileSafe(join(context.dir, filename));
+    if (content) return { content, source: 'local' };
+  }
+  // Try project root
+  if (context.projectDir && context.projectDir !== context.dir) {
+    const content = await readFileSafe(join(context.projectDir, filename));
+    if (content) return { content, source: 'project' };
+  }
+  // Try URL
+  if (context.url) {
+    const content = await fetchUrl(context.url, `/${filename}`);
+    if (content) return { content, source: 'url' };
+  }
+  return { content: null };
+}
+
+export function createScanContext(baseUrl, crawl) {
+  return {
+    dir: null,
+    projectDir: null,
+    url: baseUrl,
+    baseUrl,
+    config: {},
+    pages: crawl.pages,
+    resources: crawl.resources,
+    crawlSummary: crawl.summary,
+    analyticsGuidance: crawl.analyticsGuidance,
+  };
+}
+
+/**
+ * Create a finding object.
+ */
+export function finding(severity, message, fix = null) {
+  const f = { severity, message };
+  if (fix) f.fix = fix;
+  return f;
+}
+
+/**
+ * Create a checker result object.
+ */
+export function checkerResult(id, name, category, score, maxScore, status, findings) {
+  return { id, name, category, score, maxScore, status, findings };
+}

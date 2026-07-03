@@ -1,0 +1,22 @@
+# Robots.txt for ExampleDocs
+# Allow all well-known AI crawlers
+
+User-agent: *
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+Sitemap: https://docs.example.com/sitemap.xml

@@ -1,0 +1,45 @@
+{
+  "name": "@aeo/core",
+  "version": "1.0.0",
+  "description": "Core AEO crawling, scoring, AI generation, and CLI utilities",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "agentic-seo": "./bin/aeo.js"
+  },
+  "scripts": {
+    "build": "node -e \"console.log('No build step required for @aeo/core')\"",
+    "lint": "node -e \"console.log('Lint not configured for @aeo/core yet')\"",
+    "test": "node --test test/**/*.test.js test/checkers/**/*.test.js"
+  },
+  "keywords": [
+    "aeo",
+    "agentic-engine-optimization",
+    "audit",
+    "ai-agents",
+    "crawler"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "chalk": "^5.3.0",
+    "cheerio": "^1.0.0",
+    "fast-xml-parser": "^5.0.0",
+    "glob": "^11.0.0",
+    "gray-matter": "^4.0.3",
+    "gpt-tokenizer": "^2.8.0",
+    "openai": "^5.0.0",
+    "ora": "^8.1.0",
+    "serve-handler": "^6.1.6",
+    "unified": "^11.0.5",
+    "remark-parse": "^11.0.0",
+    "yargs": "^17.7.2",
+    "zod": "^3.24.2"
+  }
+}

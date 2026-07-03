@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "name": "ExampleDocs",
+  "description": "Permissions and policies for AI agents interacting with ExampleDocs.",
+  "interactions": {
+    "allowed": [
+      "read_documentation",
+      "search_endpoints",
+      "generate_code_snippets",
+      "explain_errors"
+    ],
+    "disallowed": [
+      "execute_api_calls",
+      "modify_user_data",
+      "access_billing"
+    ]
+  },
+  "rate_limits": {
+    "requests_per_minute": 60,
+    "requests_per_hour": 1000,
+    "max_tokens_per_request": 4096
+  },
+  "data_policies": {
+    "allow_training": false,
+    "allow_caching": true,
+    "cache_ttl_seconds": 3600
+  },
+  "contact": {
+    "email": "api-support@example.com",
+    "docs_url": "https://docs.example.com"
+  }
+}

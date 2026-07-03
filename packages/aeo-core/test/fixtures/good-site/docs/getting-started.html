@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started - ExampleDocs</title>
+  <meta name="description" content="Get started with the ExampleDocs API in minutes. Install the SDK, authenticate, and make your first API call.">
+  <meta name="ai:token-count" content="500">
+  <link rel="canonical" href="https://docs.example.com/docs/getting-started">
+  <link rel="alternate" type="text/markdown" href="/docs/getting-started.md">
+</head>
+<body>
+  <nav aria-label="Main navigation">
+    <a href="/">Home</a>
+    <a href="/docs/getting-started.html">Getting Started</a>
+    <a href="/docs/api/users.html">API Reference</a>
+  </nav>
+  <main>
+    <article>
+      <h1>Getting Started</h1>
+      <p>This guide walks you through installing the SDK, authenticating, and making your first API call.</p>
+
+      <h2>Installation</h2>
+      <p>Install the Python SDK using pip:</p>
+      <div class="code-block">
+        <button class="copy-button" data-copy-ai="true" aria-label="Copy code">Copy</button>
+        <pre><code class="language-bash">pip install exampledocs</code></pre>
+      </div>
+
+      <h2>Authentication</h2>
+      <p>Create a client with your API token:</p>
+      <div class="code-block">
+        <button class="copy-button" data-copy-ai="true" aria-label="Copy code">Copy</button>
+        <pre><code class="language-python">from exampledocs import Client
+
+client = Client(api_key="YOUR_TOKEN")</code></pre>
+      </div>
+
+      <h2>Your First Request</h2>
+      <h3>List Users</h3>
+      <p>Retrieve all users in your organization:</p>
+      <div class="code-block">
+        <button class="copy-button" data-copy-ai="true" aria-label="Copy code">Copy</button>
+        <pre><code class="language-python">users = client.users.list()
+for user in users:
+    print(user.email)</code></pre>
+      </div>
+
+      <h3>Handle Errors</h3>
+      <p>The SDK raises typed exceptions:</p>
+      <div class="code-block">
+        <button class="copy-button" data-copy-ai="true" aria-label="Copy code">Copy</button>
+        <pre><code class="language-python">from exampledocs.errors import NotFoundError
+
+try:
+    user = client.users.get("invalid-id")
+except NotFoundError:
+    print("User not found")</code></pre>
+      </div>
+
+      <h2>Next Steps</h2>
+      <ul>
+        <li><a href="/docs/api/users.html">Users API Reference</a></li>
+        <li><a href="/docs/getting-started.md">View as Markdown</a></li>
+      </ul>
+    </article>
+  </main>
+</body>
+</html>
