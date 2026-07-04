@@ -1263,7 +1263,7 @@ h4 {
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .topnav {
@@ -1331,7 +1331,7 @@ h4 {
   color: var(--text-primary);
   font-size: 32px;
   font-weight: 600;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   line-height: 1.2;
 }
 
@@ -1750,7 +1750,7 @@ h4 {
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .readiness-card p {
@@ -1847,5 +1847,340 @@ h4 {
 
   .ambient-status {
     gap: 12px;
+  }
+}
+
+/* Responsive hardening for compact and touch devices */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body,
+main,
+.shell,
+section,
+article,
+form,
+div {
+  min-width: 0;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+button,
+.primary-button,
+.secondary-button,
+.ghost-button,
+.link-button,
+.apple-primary-button,
+.apple-secondary-button,
+.url-competitor-toggle,
+.badge,
+.query-pill {
+  min-width: 0;
+  white-space: normal;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+strong,
+.meta,
+.subtle,
+.empty-state,
+.form-error,
+.url-line,
+.artifact-card,
+.page-card,
+.finding-item,
+.project-link,
+.platform-row,
+.fact-item,
+.check-row,
+.badge,
+.query-pill {
+  overflow-wrap: anywhere;
+}
+
+.hero-scan-zone h2,
+.wordmark h1 {
+  letter-spacing: 0;
+}
+
+.topbar,
+.report-header,
+.report-toolbar,
+.report-export-panel,
+.panel-heading,
+.split-header,
+.row,
+.row-wrap,
+.apple-url-row,
+.apple-secondary-fields,
+.apple-actions,
+.readiness-card-row,
+.ambient-status,
+.batch-action-bar,
+.report-export-actions {
+  min-width: 0;
+}
+
+.apple-url-field input,
+.apple-secondary-fields input,
+.competitor-panel textarea {
+  min-width: 0;
+}
+
+.batch-action-bar {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 900px) {
+  .shell {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .topbar {
+    margin-right: -24px;
+    margin-left: -24px;
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .score-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .readiness-card-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .readiness-card {
+    width: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: 100%;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .topbar {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .topnav,
+  .row-wrap,
+  .report-export-actions {
+    width: 100%;
+  }
+
+  .topnav {
+    justify-content: flex-end;
+  }
+
+  .hero-scan-zone {
+    width: 100%;
+    padding-top: clamp(38px, 10vh, 64px);
+  }
+
+  .hero-scan-zone h2 {
+    max-width: 100%;
+    margin-bottom: 24px;
+    font-size: 1.75rem;
+    line-height: 1.18;
+  }
+
+  .apple-scan-form,
+  .apple-url-row,
+  .apple-secondary-fields,
+  .apple-actions,
+  .competitor-panel {
+    width: 100%;
+  }
+
+  .apple-url-row {
+    max-width: 480px;
+  }
+
+  .apple-url-field {
+    flex-basis: auto;
+  }
+
+  .apple-url-field input {
+    height: 52px;
+    padding-right: 18px;
+    padding-left: 46px;
+  }
+
+  .apple-url-field svg {
+    left: 19px;
+  }
+
+  .apple-secondary-fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+
+  .apple-secondary-fields label:first-child,
+  .apple-secondary-fields label:last-child,
+  .apple-primary-button,
+  .apple-secondary-button {
+    width: 100%;
+  }
+
+  .apple-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+
+  .competitor-panel {
+    max-width: 480px;
+  }
+
+  .readiness-strip {
+    margin-top: 52px;
+  }
+
+  .readiness-card-row {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+
+  .ambient-status {
+    align-items: flex-start;
+    max-width: 480px;
+    margin-top: 52px;
+  }
+
+  .report-header,
+  .report-toolbar,
+  .report-export-panel,
+  .split-header,
+  .panel-heading,
+  .row {
+    align-items: stretch;
+  }
+
+  .report-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .grade-block {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .metrics-grid,
+  .lists-grid,
+  .fact-grid,
+  .feature-grid,
+  .feature-grid.compact,
+  .demo-scores {
+    grid-template-columns: 1fr;
+  }
+
+  .batch-runner {
+    padding-bottom: 148px;
+  }
+
+  .batch-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .batch-action-progress {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .batch-action-bar .row-wrap,
+  .batch-action-bar button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .topbar {
+    margin-right: -12px;
+    margin-left: -12px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .wordmark {
+    gap: 8px;
+  }
+
+  .wordmark h1 {
+    font-size: 14px;
+  }
+
+  .public-mode-toggle,
+  .public-mode-toggle.active {
+    padding-left: 12px;
+    font-size: 13px;
+  }
+
+  .hero-scan-zone h2,
+  .workbench h2,
+  .hero h2,
+  .report-header h2 {
+    font-size: 1.55rem;
+  }
+
+  .apple-url-field input {
+    font-size: 16px;
+  }
+
+  .panel,
+  .scan-console,
+  .metric-card,
+  .list-card,
+  .score-card,
+  .hero-card,
+  .feature-card,
+  .pricing-card,
+  .status-card {
+    padding: 14px;
+  }
+
+  .report-header,
+  .report-toolbar {
+    padding: 14px;
+  }
+
+  .score-card strong,
+  .grade-block strong {
+    font-size: 1.9rem;
   }
 }
