@@ -1,5 +1,6 @@
 import { auditLiveSite, generateArtifacts, generateVisibilityAnalysis } from "@aeo/core";
 import { getProviderConfig } from "@/lib/env";
+import { normalizeHttpUrl } from "@/lib/url";
 
 export type InstantReport = {
   score: number;
@@ -63,16 +64,6 @@ export type PublicScanResult = {
   aiEnabled: boolean;
 };
 
-export function isValidHttpUrl(value?: string) {
-  if (!value) return false;
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 export function splitList(value: string) {
   return value
     .split(/\r?\n|,/)
@@ -97,15 +88,21 @@ export async function scanPublicUrl({
   includeAi?: boolean;
   includeArtifacts?: boolean;
 }): Promise<PublicScanResult> {
+  const normalizedUrl = normalizeHttpUrl(url);
+  if (!normalizedUrl) {
+    throw new Error("Enter a valid website URL or domain.");
+  }
+
   const focusTerms = Array.isArray(focus) ? focus : splitList(focus);
   const competitorUrls = (Array.isArray(competitors) ? competitors : splitList(competitors))
-    .filter((value) => isValidHttpUrl(value))
+    .map((value) => normalizeHttpUrl(value))
+    .filter((value): value is string => Boolean(value))
     .slice(0, 4);
   const analysisProviderConfig = includeAi ? getProviderConfig({ purpose: "analysis" }) : null;
   const remediationProviderConfig = includeAi ? getProviderConfig({ purpose: "remediation" }) : null;
   const providerConfigured = Boolean(getProviderConfig({ purpose: "analysis" }) || getProviderConfig({ purpose: "remediation" }));
 
-  const report = (await auditLiveSite(url, { pageBudget })) as InstantReport;
+  const report = (await auditLiveSite(normalizedUrl, { pageBudget })) as InstantReport;
 
   const competitorReports = await Promise.all(
     competitorUrls.map(async (competitorUrl) => {
@@ -124,14 +121,14 @@ export async function scanPublicUrl({
   const remediation = remediationProviderConfig && includeArtifacts
     ? await generateArtifacts({
         report,
-        baseUrl: url,
+        baseUrl: normalizedUrl,
         providerConfig: remediationProviderConfig,
       })
     : null;
 
   const visibility = (await (generateVisibilityAnalysis as any)({
     report,
-    baseUrl: url,
+    baseUrl: normalizedUrl,
     providerConfig: analysisProviderConfig,
     area,
     focusTerms,

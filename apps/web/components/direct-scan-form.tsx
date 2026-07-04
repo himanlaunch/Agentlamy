@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { Globe2, Loader2, Plus } from "lucide-react";
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
+import { normalizeHttpUrl } from "@/lib/url";
 
 type CompetitorSuggestion = {
   url: string;
@@ -20,15 +21,6 @@ function splitList(value: string) {
     .split(/\r?\n|,/)
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-function isValidHttpUrl(value: string) {
-  try {
-    const parsed = new URL(value.trim());
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 function displayUrl(value: string) {
@@ -73,7 +65,8 @@ export function DirectScanForm({
   }, [manualCompetitors, selectedSuggestions]);
 
   async function handleDiscoverCompetitors() {
-    if (!validateUrl(url)) {
+    const normalizedUrl = validateUrl(url);
+    if (!normalizedUrl) {
       setDiscoverError("Enter a valid website URL before finding competitors.");
       return;
     }
@@ -93,7 +86,7 @@ export function DirectScanForm({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url,
+          url: normalizedUrl,
           area,
           focus,
           limit: 6,
@@ -129,24 +122,31 @@ export function DirectScanForm({
   function validateUrl(value: string) {
     if (!value.trim()) {
       setUrlError("Enter a website URL to scan.");
-      return false;
+      return null;
     }
 
-    if (!isValidHttpUrl(value)) {
-      setUrlError("Use a full URL starting with http:// or https://.");
-      return false;
+    const normalizedUrl = normalizeHttpUrl(value);
+    if (!normalizedUrl) {
+      setUrlError("Enter a valid website URL or domain.");
+      return null;
     }
 
     setUrlError("");
-    return true;
+    return normalizedUrl;
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (!validateUrl(url)) {
+    const normalizedUrl = validateUrl(url);
+    if (!normalizedUrl) {
       event.preventDefault();
       return;
     }
 
+    setUrl(normalizedUrl);
+    const input = event.currentTarget.elements.namedItem("url");
+    if (input instanceof HTMLInputElement) {
+      input.value = normalizedUrl;
+    }
     setIsScanning(true);
   }
 
@@ -168,9 +168,10 @@ export function DirectScanForm({
             <input
               id="scan-url"
               name="url"
-              type="url"
+              inputMode="url"
               placeholder="Paste your website or docs URL..."
               required
+              type="text"
               value={url}
               aria-describedby={urlError ? "scan-url-error" : "scan-url-hint"}
               aria-invalid={urlError ? "true" : "false"}

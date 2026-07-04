@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowLeft, BadgeCheck, Bot, BrainCircuit, Building2, CircleAlert, ClipboardCheck, Crosshair, FileText, Gauge, MapPin, Route, SearchCheck, Sparkles, Trophy } from "lucide-react";
 import { DirectScanForm } from "@/components/direct-scan-form";
 import { ReportExportActions } from "@/components/report-export-actions";
-import { isValidHttpUrl, PublicScanResult, scanPublicUrl, splitList } from "@/lib/public-scan";
+import { PublicScanResult, scanPublicUrl, splitList } from "@/lib/public-scan";
+import { normalizeHttpUrl } from "@/lib/url";
 
 function scoreTone(score: number) {
   if (score >= 80) return "good";
@@ -115,13 +116,15 @@ export default async function InstantScanPage({
   searchParams: Promise<{ url?: string; area?: string; focus?: string; competitors?: string }>;
 }) {
   const { url, area, focus, competitors } = await searchParams;
-  const scanUrl = typeof url === "string" ? url : "";
+  const rawScanUrl = typeof url === "string" ? url : "";
+  const normalizedScanUrl = normalizeHttpUrl(rawScanUrl);
+  const scanUrl = normalizedScanUrl || rawScanUrl;
   const areaValue = typeof area === "string" ? area : "";
   const focusValue = typeof focus === "string" ? focus : "";
   const competitorsValue = typeof competitors === "string" ? competitors : "";
   const focusTerms = splitList(focusValue);
 
-  if (!isValidHttpUrl(scanUrl)) {
+  if (!normalizedScanUrl) {
     return (
       <section className="stack-list">
         <div className="hero-card">

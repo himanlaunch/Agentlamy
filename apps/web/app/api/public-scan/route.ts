@@ -1,12 +1,26 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createBatchScanSummary, scanPublicUrl } from "@/lib/public-scan";
+import { normalizeHttpUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+const websiteUrlSchema = z.string().min(1).transform((value, ctx) => {
+  const normalizedUrl = normalizeHttpUrl(value);
+  if (!normalizedUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter a valid website URL or domain.",
+    });
+    return z.NEVER;
+  }
+
+  return normalizedUrl;
+});
+
 const bodySchema = z.object({
-  url: z.string().url(),
+  url: websiteUrlSchema,
   area: z.string().optional().default(""),
   focus: z.union([z.string(), z.array(z.string())]).optional().default(""),
   competitors: z.union([z.string(), z.array(z.string())]).optional().default(""),
