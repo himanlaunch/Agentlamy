@@ -177,6 +177,16 @@ main {
   border-color: var(--text);
 }
 
+.wordmark-logo {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: white;
+  object-fit: cover;
+}
+
 .wordmark h1,
 .workbench h2,
 .hero h2,
@@ -1250,12 +1260,18 @@ h4 {
 }
 
 .wordmark-mark {
-  width: 12px;
-  height: 12px;
-  min-width: 12px;
-  border: 0;
-  border-radius: 3px;
-  background: #000000;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.wordmark-logo {
+  width: 34px;
+  height: 34px;
+  border-color: var(--border);
 }
 
 .wordmark h1 {
@@ -2143,6 +2159,11 @@ strong,
 
   .wordmark h1 {
     font-size: 14px;
+  }
+
+  .wordmark-logo {
+    width: 32px;
+    height: 32px;
   }
 
   .public-mode-toggle,

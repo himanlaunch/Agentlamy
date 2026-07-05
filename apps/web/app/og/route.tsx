@@ -2,7 +2,9 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const logoUrl = new URL("/og-logo.png", request.url).toString();
+
   return new ImageResponse(
     (
       <div
@@ -19,23 +21,22 @@ export async function GET() {
           width: "100%",
         }}
       >
-        <div
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          alt="AEO Command logo"
+          height={112}
+          src={logoUrl}
           style={{
-            alignItems: "center",
-            border: "2px solid #BCDCCD",
-            borderRadius: 18,
-            color: "#BCDCCD",
-            display: "flex",
-            fontSize: 24,
-            fontWeight: 700,
-            height: 72,
-            justifyContent: "center",
+            border: "3px solid #BCDCCD",
+            borderRadius: 999,
+            display: "block",
+            height: 112,
             marginBottom: 34,
-            width: 72,
+            objectFit: "cover",
+            width: 112,
           }}
-        >
-          AEO
-        </div>
+          width={112}
+        />
         <p style={{ color: "#BCDCCD", fontSize: 24, letterSpacing: 4, margin: 0 }}>
           AEO COMMAND
         </p>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Inter } from "next/font/google";
 import { PublicModeToggle } from "@/components/public-mode-toggle";
@@ -11,18 +12,21 @@ const bodyFont = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://agentlamy.com"),
   title: {
     default: "AEO Command - LLM Visibility & AEO Audit Tool",
     template: "%s | AEO Command",
   },
   description:
     "Run a free AEO and LLM visibility audit for any website. See how AI recommends your business vs. competitors instantly.",
-  metadataBase: new URL("https://web-eta-gules-43.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "AEO Command - LLM Visibility & AEO Audit Tool",
     description:
       "Run a free AEO and LLM visibility audit for any website. See how AI recommends your business vs. competitors instantly.",
-    url: "https://web-eta-gules-43.vercel.app",
+    url: "/",
     siteName: "AEO Command",
     images: [
       {
@@ -42,8 +46,16 @@ export const metadata: Metadata = {
     images: ["/og"],
   },
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  manifest: "/site.webmanifest",
 };
 
 export default async function RootLayout({
@@ -61,7 +73,15 @@ export default async function RootLayout({
           <div className="shell">
             <header className="topbar">
               <Link href="/" className="wordmark" aria-label="AEO Command - go to scanner">
-                <span className="wordmark-mark" aria-hidden="true" />
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="wordmark-logo"
+                  height={36}
+                  priority
+                  src="/brand-logo.png"
+                  width={36}
+                />
                 <div>
                   <h1>AEO Command</h1>
                 </div>
