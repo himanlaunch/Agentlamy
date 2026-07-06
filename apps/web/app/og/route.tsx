@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          alt="AEO Command logo"
+          alt="AgentLamy logo"
           height={112}
           src={logoUrl}
           style={{
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
           width={112}
         />
         <p style={{ color: "#BCDCCD", fontSize: 24, letterSpacing: 4, margin: 0 }}>
-          AEO COMMAND
+          AGENTLAMY
         </p>
         <h1 style={{ color: "#FFFFFF", fontSize: 76, lineHeight: 1.02, margin: "18px 0" }}>
           LLM Visibility &

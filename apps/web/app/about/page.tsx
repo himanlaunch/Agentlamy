@@ -3,7 +3,7 @@ import { BarChart3, Bot, Clock, Globe2, ShieldCheck, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "How It Works",
-  description: "How AEO Command audits websites for LLM visibility, agent readiness, and competitive positioning.",
+  description: "How AgentLamy audits websites for LLM visibility, agent readiness, and competitive positioning.",
 };
 
 const measured = [

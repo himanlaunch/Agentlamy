@@ -1,6 +1,6 @@
 {
-  "name": "AEO Command",
-  "short_name": "AEO Command",
+  "name": "AgentLamy",
+  "short_name": "AgentLamy",
   "description": "LLM visibility and AEO audit tool.",
   "icons": [
     {

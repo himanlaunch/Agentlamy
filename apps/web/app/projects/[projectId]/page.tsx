@@ -35,7 +35,7 @@ export default async function ProjectPage({
         <p>{project.baseUrl}</p>
         <div className="row-wrap">
           <ScanActionButton projectId={project.id} />
-          <Link className="secondary-button" href="/">
+          <Link className="secondary-button" href="/dashboard">
             Back to dashboard
           </Link>
         </div>

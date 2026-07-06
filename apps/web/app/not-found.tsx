@@ -25,10 +25,12 @@ export default function NotFound() {
       </div>
       <nav className="helpful-links" aria-label="Helpful links">
         <Link href="/">Scanner</Link>
+        <Link href={"/batch" as Route}>Batch</Link>
         <Link href={"/demo" as Route}>Demo</Link>
         <Link href={"/about" as Route}>About</Link>
         <Link href={"/pricing" as Route}>Pricing</Link>
         <Link href={"/status" as Route}>Status</Link>
+        <Link href={"/dashboard" as Route}>Dashboard</Link>
       </nav>
     </section>
   );

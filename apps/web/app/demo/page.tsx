@@ -4,7 +4,7 @@ import { ArrowRight, BarChart3, Bot, FileSearch } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Sample AEO Report",
-  description: "Preview what an AEO Command report includes before running a live scan.",
+  description: "Preview what an AgentLamy report includes before running a live scan.",
 };
 
 const sampleScores = [

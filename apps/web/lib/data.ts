@@ -34,7 +34,7 @@ export async function ensureUserRecord(user: { id: string; email?: string | null
     .values({
       id: user.id,
       email: user.email ?? null,
-      name: user.name ?? user.email ?? "AEO User",
+      name: user.name ?? user.email ?? "AgentLamy User",
     })
     .returning();
 

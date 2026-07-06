@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Inter } from "next/font/google";
-import { PublicModeToggle } from "@/components/public-mode-toggle";
+import { auth } from "@/lib/auth";
+import { hasDatabaseConfig } from "@/lib/env";
 import "./globals.css";
 
 const bodyFont = Inter({
@@ -14,8 +15,8 @@ const bodyFont = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://agentlamy.com"),
   title: {
-    default: "AEO Command - LLM Visibility & AEO Audit Tool",
-    template: "%s | AEO Command",
+    default: "AgentLamy - LLM Visibility & AEO Audit Tool",
+    template: "%s | AgentLamy",
   },
   description:
     "Run a free AEO and LLM visibility audit for any website. See how AI recommends your business vs. competitors instantly.",
@@ -23,17 +24,17 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "AEO Command - LLM Visibility & AEO Audit Tool",
+    title: "AgentLamy - LLM Visibility & AEO Audit Tool",
     description:
       "Run a free AEO and LLM visibility audit for any website. See how AI recommends your business vs. competitors instantly.",
     url: "/",
-    siteName: "AEO Command",
+    siteName: "AgentLamy",
     images: [
       {
         url: "/og",
         width: 1200,
         height: 630,
-        alt: "AEO Command - LLM Visibility & AEO Audit",
+        alt: "AgentLamy - LLM Visibility & AEO Audit",
       },
     ],
     locale: "en_US",
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AEO Command - LLM Visibility & AEO Audit Tool",
+    title: "AgentLamy - LLM Visibility & AEO Audit Tool",
     description: "See how AI recommends your business vs. competitors.",
     images: ["/og"],
   },
@@ -63,6 +64,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = hasDatabaseConfig() ? await auth() : null;
+  const isSignedIn = Boolean(session?.user?.id);
+
   return (
     <html lang="en">
       <body className={bodyFont.variable}>
@@ -72,7 +76,7 @@ export default async function RootLayout({
         <main id="main-content" tabIndex={-1}>
           <div className="shell">
             <header className="topbar">
-              <Link href="/" className="wordmark" aria-label="AEO Command - go to scanner">
+              <Link href="/" className="wordmark" aria-label="AgentLamy - go to scanner">
                 <Image
                   alt=""
                   aria-hidden="true"
@@ -83,11 +87,18 @@ export default async function RootLayout({
                   width={36}
                 />
                 <div>
-                  <h1>AEO Command</h1>
+                  <h1>AgentLamy</h1>
                 </div>
               </Link>
               <nav className="topnav" aria-label="Primary">
-                <PublicModeToggle />
+                <Link className="nav-link" href="/batch">Batch</Link>
+                <Link className="nav-link" href="/about">About</Link>
+                <Link className="nav-link" href="/demo">Demo</Link>
+                <Link className="nav-link" href="/pricing">Pricing</Link>
+                <Link className="nav-link" href="/status">Status</Link>
+                {isSignedIn && (
+                  <Link className="nav-link nav-status" href="/dashboard">Dashboard</Link>
+                )}
               </nav>
             </header>
             {children}

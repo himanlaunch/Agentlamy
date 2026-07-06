@@ -4,7 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "AEO Command pricing for public scans, batch audits, and future saved workspaces.",
+  description: "AgentLamy pricing for public scans, batch audits, and future saved workspaces.",
 };
 
 const features = [

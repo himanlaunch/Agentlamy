@@ -18,7 +18,7 @@ export default function StatusPage() {
       <div className="content-header">
         <p className="eyebrow">Status</p>
         <h2>System status</h2>
-        <p>Current health and runtime mode for AEO Command services.</p>
+        <p>Current health and runtime mode for AgentLamy services.</p>
       </div>
       <div className="status-card">
         {rows.map((row) => (
