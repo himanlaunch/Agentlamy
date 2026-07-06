@@ -139,7 +139,7 @@ async function fetchPageTitle(url: string) {
         "User-Agent": DISCOVERY_USER_AGENT,
         Accept: "text/html,application/xhtml+xml",
       },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(2000),
     });
     const html = await response.text();
     const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
@@ -155,7 +155,7 @@ async function searchDuckDuckGo(query: string) {
       "User-Agent": DISCOVERY_USER_AGENT,
       Accept: "text/html,application/xhtml+xml",
     },
-    signal: AbortSignal.timeout(7000),
+    signal: AbortSignal.timeout(5000),
   });
 
   if (!response.ok) {
@@ -179,7 +179,7 @@ async function searchSerpApi(query: string, apiKey: string) {
       Accept: "application/json",
       "User-Agent": DISCOVERY_USER_AGENT,
     },
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(5000),
   });
 
   if (!response.ok) {
@@ -384,7 +384,7 @@ Snippet: ${candidate.snippet || "N/A"}`).join("\n\n")}
 Return up to 8 suggestions with the exact url from the candidates and a concise reason that mentions same service/category and same area fit when available.`,
       }) as Promise<z.infer<typeof aiSchema>>,
       new Promise<z.infer<typeof aiSchema>>((_, reject) =>
-        setTimeout(() => reject(new Error("AI rerank timed out.")), 4500)
+        setTimeout(() => reject(new Error("AI rerank timed out.")), 2500)
       ),
     ]);
 
@@ -415,12 +415,18 @@ export async function discoverCompetitors({
   limit?: number;
 }) {
   const targetDomain = normalizeDomain(url);
-  const pageTitle = focus.trim() ? "" : await fetchPageTitle(url);
+
+  // Fetch page title in parallel with the first search pass so we don't
+  // add sequential latency. Use the brand from the URL as the immediate fallback.
+  const { brand } = queryTermsFromUrl(url);
+  const pageTitlePromise = focus.trim() ? Promise.resolve("") : fetchPageTitle(url);
+
+  // Build initial queries from what we know right now (brand / focus / area).
   const queries = buildQueries({
     targetUrl: url,
     area,
     focus,
-    pageTitle,
+    pageTitle: focus.trim() ? "" : brand,
   });
 
   const byDomain = new Map<string, CompetitorSuggestion>();
@@ -510,6 +516,8 @@ export async function discoverCompetitors({
     area,
     focus,
   });
+
+  const pageTitle = await pageTitlePromise.catch(() => "");
 
   return {
     targetUrl: url,

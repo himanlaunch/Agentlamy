@@ -4,7 +4,7 @@ import { discoverCompetitors } from "@/lib/competitor-discovery";
 import { normalizeHttpUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 15;
 
 const websiteUrlSchema = z.string().min(1).transform((value, ctx) => {
   const normalizedUrl = normalizeHttpUrl(value);
