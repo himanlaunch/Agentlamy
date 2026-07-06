@@ -501,7 +501,7 @@ export async function discoverCompetitors({
   }
 
   if (!candidatesByScore.length) {
-    throw new Error("No direct competitors were found for that area and service. Try a broader service label or nearby city.");
+    throw new Error("No direct competitors were found. Try adding an area or industry to narrow the search.");
   }
 
   const ranked = await rerankWithAi({

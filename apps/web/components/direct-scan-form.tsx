@@ -71,11 +71,6 @@ export function DirectScanForm({
       return;
     }
 
-    if (!area.trim() || !focus.trim()) {
-      setDiscoverError("Add both Area and Products or services so we can find competitors in the same market.");
-      return;
-    }
-
     setDiscoverError("");
     setIsDiscovering(true);
 
@@ -100,7 +95,7 @@ export function DirectScanForm({
 
       const nextSuggestions = (payload.suggestions || []) as CompetitorSuggestion[];
       if (!nextSuggestions.length) {
-        throw new Error("No direct competitors were found for that area and service. Try a broader service label or nearby city.");
+        throw new Error("No direct competitors were found. Try adding an area or industry to narrow the search.");
       }
       setSuggestions(nextSuggestions);
       setSelectedSuggestions(nextSuggestions.slice(0, 3).map((item) => item.url));
